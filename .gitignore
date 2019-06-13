@@ -1,0 +1,20 @@
+# Python
+__pycache__
+*.pyc
+
+# Visual Studio Code
+.vscode
+
+# Jupyter notebook
+.ipynb_checkpoints
+*.ipynb
+
+# Unfinished docs
+docs/images/ce.jpg
+docs/images/ck+.gif
+docs/images/jaffe.png
+docs/*.md
+
+# Unfineshed code
+# DeepExpressions/wrapper/
+examples

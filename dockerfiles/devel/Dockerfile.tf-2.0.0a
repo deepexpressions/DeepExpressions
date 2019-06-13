@@ -1,0 +1,37 @@
+FROM expressions/devel:cuda10-cudnn7
+
+# Update
+RUN apt-get update
+
+# Install tensorflow
+RUN pip install tensorflow-gpu==2.0.0-alpha0 
+
+# Install python packages
+ADD requirements.txt /tmp/
+RUN pip install -r /tmp/requirements.txt
+
+# Install jupyter extensions
+RUN jupyter contrib nbextensions install
+
+# Enable extensions
+RUN jupyter nbextension enable codefolding/main && \
+    jupyter nbextension enable code_prettify/autopep8 && \
+    jupyter nbextension enable livemdpreview/livemdpreview && \
+    jupyter nbextension enable hinterland/hinterland && \
+    jupyter nbextension enable spellchecker/main && \
+    jupyter nbextension enable toggle_all_line_numbers/main && \
+    jupyter nbextension enable move_selected_cells/main && \
+    jupyter nbextension enable tree-filter/index && \
+    jupyter nbextension enable collapsible_headings/main && \
+    jupyter nbextension enable varInspector/main
+
+# Set jupyter theme
+RUN jt -t oceans16 -fs 95 -tfs 95 -nfs 95 -cellw 88% -T
+
+# Set up work dir
+WORKDIR /work
+
+# Expose jupyter and tensorflow ports
+EXPOSE 8888 6006
+
+CMD /bin/bash
