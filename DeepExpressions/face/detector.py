@@ -5,10 +5,10 @@ from __future__ import absolute_import
 import os
 import cv2
 from numpy import array
-from .face_detector_utils import maybe_download_model
+from .model_utils import maybe_download_model
 
 
-class FaceDetector():
+class Detector():
     """
     Face Detector based on OpenCV's dnn module. 
     It utilizes the Single Shot Detector (SSD) framework with a ResNet as the base network.

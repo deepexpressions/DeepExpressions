@@ -82,7 +82,7 @@ def maybe_download_model():
     Download OpenCV Face Dectector model into designated model_path.
 
     Arguments:
-        + model_path (str) __ model_path directory to OpenCV Caffe model.
+        + model_path (str) -- model_path directory to OpenCV Caffe model.
     
     Files:
         + deploy.prototxt

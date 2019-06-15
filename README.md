@@ -14,7 +14,7 @@ Before installing DeepExpression, please install [Tensorflow 2.0](https://www.te
 
 * **Install DeepExpressions from PyPI (recommend):**
 ```
-pip install DeepExpressions
+<!-- pip install DeepExpressions -->
 ```
 
 ---

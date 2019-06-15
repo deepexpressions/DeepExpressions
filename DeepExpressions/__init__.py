@@ -1,2 +1,5 @@
-from .model import Model
-from .face_detector import FaceDetector
+from . import face
+from . import utils
+from . import models
+from . import train_utils
+from . import visualization

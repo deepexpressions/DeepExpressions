@@ -4,17 +4,14 @@ from __future__ import absolute_import
 
 import numpy as np
 import tensorflow as tf
-from .models_info import MODELS
+from .models_info import MODELS, LABELS
 
 
 # Image size from input_data
 IMAGE_SIZE = 128
-# Label names
-LABELS = {0: "Anger", 1: "Disgust", 2: "Fear",
-          3: "Hapiness", 4: "Neutral", 5: "Sadness", 6: "Surprise"}
 
 
-class Model():
+class FERModel():
     """
     Facial Expression Recognition Model.
 
@@ -41,29 +38,35 @@ class Model():
         self.model = load_model(model_name, custom_model)
 
 
-    def predict(self, input_data, labeled_output=True):
+    def predict(self, input_data, return_labels=False, return_scores=False):
         """
         Predict facial expressions from input data.
 
         Arguments:
             + input_data -- Images to predict. It can be np.ndarray, tf.Tensor or a list of the previous types.
-            + labeled_output (bool) -- Returns predictions with names rather than one-hot-encoded.
+            + return_labels (bool) -- Returns predictions with label names.
+            + return_scores (bool) -- Returns scores from each class in the prediction.
 
         Output:
-            + list with predicted labels from the input_data.
+            + (list of predictions, [labeled predictions], [scores])
         """
         # pre-process input_data
         input_data = self._preprocess_input_data(input_data)
 
         # Predict data
-        predictions = tf.argmax(
-            self.model.predict(input_data), axis=1)
+        scores = self.model.predict(input_data)
+        predictions = tf.argmax(scores, axis=1)
 
-        if labeled_output:
-            return list(map(self._label_predictions, predictions.numpy().tolist()))
+        output = (predictions, )
 
-        else:
-            return predictions.numpy().tolist()
+        if return_labels:
+            labeled_predictions = list(map(self._label_predictions, predictions.numpy().tolist()))
+            output += (labeled_predictions, )
+
+        if return_scores:
+            output += (scores, )
+
+        return output
 
 
     def train_info(self):
@@ -76,8 +79,6 @@ class Model():
     def summary(self):
         """Prints a summary representation of the model loaded."""
         self.model.summary()
-
-
 
 
     def _preprocess_input_data(self, input_data):
