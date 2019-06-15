@@ -12,10 +12,10 @@ DeepExpressions is a Deep Learning tookit for Facial Expressions Recognition (FE
 
 Before installing DeepExpression, please install [Tensorflow 2.0](https://www.tensorflow.org/install/pip). We recommend the GPU version.
 
-* **Install DeepExpressions from PyPI (recommend):**
+<!-- * **Install DeepExpressions from PyPI (recommend):**
 ```
-<!-- pip install DeepExpressions -->
-```
+pip install DeepExpressions
+``` -->
 
 ---
 ## License
