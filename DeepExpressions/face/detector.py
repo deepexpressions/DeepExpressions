@@ -5,7 +5,7 @@ from __future__ import absolute_import
 import os
 import cv2
 from numpy import array
-from .model_utils import maybe_download_model
+from .download_model import maybe_download_model
 
 
 class Detector():
