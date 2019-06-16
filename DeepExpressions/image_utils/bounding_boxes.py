@@ -36,7 +36,7 @@ STANDARD_COLORS = [
 ]
 
 
-def draw_bounding_box_on_image_from_array(image, box, scores=None, colors="red", font_color="black", thickness=2,
+def draw_bounding_box_from_array(image, box, scores=None, colors="red", font_color="black", thickness=2,
                                           font_size=24, use_normalized_coordinates=True):
     """
     Adds a bounding box to an image (numpy array).
@@ -56,12 +56,12 @@ def draw_bounding_box_on_image_from_array(image, box, scores=None, colors="red",
     """
 
     image_pil = Image.fromarray(np.uint8(image)).convert("RGB")
-    draw_bounding_box_on_image(image_pil, box, scores, colors,
+    draw_bounding_box(image_pil, box, scores, colors,
                                font_color, thickness, font_size, use_normalized_coordinates)
     np.copyto(image, np.array(image_pil))
 
 
-def draw_bounding_box_on_image(image, box, scores=None, colors="red", font_color="black", thickness=2,
+def draw_bounding_box(image, box, scores=None, colors="red", font_color="black", thickness=2,
                                font_size=24, use_normalized_coordinates=True):
     """
     Adds a bounding box to an image.
@@ -117,10 +117,10 @@ def draw_bounding_box_on_image(image, box, scores=None, colors="red", font_color
 
     # Write label
     if text is not None:
-        draw_text_on_image(image, text, left, right, top, bottom, color, font_color, font_size)
+        draw_text(image, text, left, right, top, bottom, color, font_color, font_size)
 
 
-def draw_bounding_boxes_on_image_from_array(image, boxes, scores=None, colors="red", font_color="black", thickness=2,
+def draw_bounding_boxes_from_array(image, boxes, scores=None, colors="red", font_color="black", thickness=2,
                                             font_size=24, use_normalized_coordinates=True):
     """
     Adds multiples bounding boxes to an image (numpy array).
@@ -140,12 +140,12 @@ def draw_bounding_boxes_on_image_from_array(image, boxes, scores=None, colors="r
     """
 
     image_pil = Image.fromarray(np.uint8(image)).convert("RGB")
-    draw_bounding_boxes_on_image(image_pil, boxes, scores, colors,
+    draw_bounding_boxes(image_pil, boxes, scores, colors,
                                  font_color, thickness, font_size, use_normalized_coordinates)
     np.copyto(image, np.array(image_pil))
 
 
-def draw_bounding_boxes_on_image(image, boxes, scores=None, colors="red", font_color="black", thickness=2,
+def draw_bounding_boxes(image, boxes, scores=None, colors="red", font_color="black", thickness=2,
                                  font_size=24, use_normalized_coordinates=True):
     """
     Adds multiples bounding boxes to an image.
@@ -173,11 +173,11 @@ def draw_bounding_boxes_on_image(image, boxes, scores=None, colors="red", font_c
 
     for i, box in enumerate(boxes):
         score = None if scores is None else scores[i]
-        draw_bounding_box_on_image(
+        draw_bounding_box(
             image, box, score, colors, font_color, thickness, font_size, use_normalized_coordinates)
 
 
-def draw_text_on_image_from_array(image, text, left, right, top, bottom, color="red", font_color="black", font_size=24):
+def draw_text_from_array(image, text, left, right, top, bottom, color="red", font_color="black", font_size=24):
     """
     Adds a text box to an image (numpy array).
     
@@ -194,11 +194,11 @@ def draw_text_on_image_from_array(image, text, left, right, top, bottom, color="
     """
 
     image_pil = Image.fromarray(np.uint8(image)).convert("RGB")
-    draw_text_on_image(image_pil, text, left, right, top, bottom, color, font_color, font_size)
+    draw_text(image_pil, text, left, right, top, bottom, color, font_color, font_size)
     np.copyto(image, np.array(image_pil))
 
 
-def draw_text_on_image(image, text, left, right, top, bottom, color="red", font_color="black", font_size=24):
+def draw_text(image, text, left, right, top, bottom, color="red", font_color="black", font_size=24):
     """
     Adds a text box to an image (numpy array).
     
