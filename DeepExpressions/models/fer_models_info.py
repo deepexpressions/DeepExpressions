@@ -1,9 +1,16 @@
-# Label names
-LABELS = {0: "Anger", 1: "Disgust", 2: "Fear",
-          3: "Hapiness", 4: "Neutral", 5: "Sadness", 6: "Surprise"}
+# FER - Facial Expressions Recognition Labels
+FER_LABELS = {
+    0: "Anger",
+    1: "Disgust",
+    2: "Fear",
+    3: "Hapiness",
+    4: "Neutral",
+    5: "Sadness"
+    6: "Surprise"
+}
 
 
-MODELS = {
+FER_MODELS = {
     "ce-xception-512-256": {
         "filename": "ce-xception-512-256.h5",
         "url": "https://github.com/deepexpressions/models/blob/master/models/ce-xception-512-256/model.h5?raw=true",

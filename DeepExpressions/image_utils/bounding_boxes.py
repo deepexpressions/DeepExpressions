@@ -55,10 +55,10 @@ def draw_bounding_box_from_array(image, box, scores=None, colors="red", font_col
             coordinates as absolute.
     """
 
-    image_pil = Image.fromarray(np.uint8(image)).convert("RGB")
-    draw_bounding_box(image_pil, box, scores, colors,
+    pil_image = Image.fromarray(np.uint8(image)).convert("RGB")
+    draw_bounding_box(pil_image, box, scores, colors,
                                font_color, thickness, font_size, use_normalized_coordinates)
-    np.copyto(image, np.array(image_pil))
+    np.copyto(image, np.array(pil_image))
 
 
 def draw_bounding_box(image, box, scores=None, colors="red", font_color="black", thickness=2,
@@ -139,10 +139,10 @@ def draw_bounding_boxes_from_array(image, boxes, scores=None, colors="red", font
             coordinates as absolute.
     """
 
-    image_pil = Image.fromarray(np.uint8(image)).convert("RGB")
-    draw_bounding_boxes(image_pil, boxes, scores, colors,
+    pil_image = Image.fromarray(np.uint8(image)).convert("RGB")
+    draw_bounding_boxes(pil_image, boxes, scores, colors,
                                  font_color, thickness, font_size, use_normalized_coordinates)
-    np.copyto(image, np.array(image_pil))
+    np.copyto(image, np.array(pil_image))
 
 
 def draw_bounding_boxes(image, boxes, scores=None, colors="red", font_color="black", thickness=2,
@@ -193,9 +193,9 @@ def draw_text_from_array(image, text, left, right, top, bottom, color="red", fon
         + font_size (int) -- Font size to draw the text.
     """
 
-    image_pil = Image.fromarray(np.uint8(image)).convert("RGB")
-    draw_text(image_pil, text, left, right, top, bottom, color, font_color, font_size)
-    np.copyto(image, np.array(image_pil))
+    pil_image = Image.fromarray(np.uint8(image)).convert("RGB")
+    draw_text(pil_image, text, left, right, top, bottom, color, font_color, font_size)
+    np.copyto(image, np.array(pil_image))
 
 
 def draw_text(image, text, left, right, top, bottom, color="red", font_color="black", font_size=24):

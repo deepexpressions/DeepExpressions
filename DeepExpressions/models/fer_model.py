@@ -4,7 +4,7 @@ from __future__ import absolute_import
 
 import numpy as np
 import tensorflow as tf
-from .models_info import MODELS, LABELS
+from .fer_models_info import FER_MODELS, FER_LABELS
 
 
 # Image size from input_data
@@ -73,7 +73,7 @@ class FERModel():
         """Prints some training information about the model loaded."""
         if self._custom_model is not None:
             raise "Can't find informations about custom models."
-        print(MODELS[self.model_name]["info"])
+        print(FER_MODELS[self.model_name]["info"])
 
 
     def summary(self):
@@ -116,7 +116,7 @@ class FERModel():
 
     def _label_predictions(self, x): 
         """Convert one-hot-encoded predictions to label names."""
-        return LABELS[x]
+        return FER_LABELS[x]
 
 
 def load_model(model_name="ce-xception-512-256", custom_model=None):
@@ -132,7 +132,7 @@ def load_model(model_name="ce-xception-512-256", custom_model=None):
     """
     def maybe_download_model():
         # Get info from the model
-        model = MODELS[model_name]
+        model = FER_MODELS[model_name]
         # Use keras utils to download model
         model_path = tf.keras.utils.get_file(
             model["filename"],
