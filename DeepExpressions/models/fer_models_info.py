@@ -5,7 +5,7 @@ FER_LABELS = {
     2: "Fear",
     3: "Hapiness",
     4: "Neutral",
-    5: "Sadness"
+    5: "Sadness",
     6: "Surprise"
 }
 
