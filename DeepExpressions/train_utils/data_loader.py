@@ -75,8 +75,9 @@ class DataLoader():
         if cache:
             ds = ds.cache()
 
-        ds = ds.apply(
-            tf.data.experimental.shuffle_and_repeat(buffer_size=self.image_count))
+        # ds = ds.apply(
+        #     tf.data.experimental.shuffle_and_repeat(buffer_size=self.image_count))
+        ds = ds.shuffle(buffer_size=self.image_count).repeat()
         self.ds = ds.batch(self.batch_size).prefetch(buffer_size=AUTOTUNE)
 
 
