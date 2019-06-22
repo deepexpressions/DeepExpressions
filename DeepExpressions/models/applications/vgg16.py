@@ -73,7 +73,7 @@ def VGG16(include_top=False, weights=None, input_shape=(224, 224, 3),
     # Determine proper input shape
     input_shape = _obtain_input_shape(input_shape,
                                       default_size=224,
-                                      min_size=32,
+                                      min_size=48 if weights == "vggface" else 32,
                                       data_format=K.image_data_format(),
                                       require_flatten=include_top,
                                       weights=weights)
