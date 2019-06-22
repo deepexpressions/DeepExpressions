@@ -5,17 +5,11 @@ import PIL.ImageDraw as ImageDraw
 import PIL.ImageFont as ImageFont
 
 
-LABELS = {0: "Anger", 1: "Disgust", 2: "Fear",
-          3: "Hapiness", 4: "Neutral", 5: "Sadness", 6: "Surprise"}
-
-# Add labels as an argument from draw_bounding_box***()
-
-
 STANDARD_COLORS = list(ImageColor.colormap)
 
 
-def draw_bounding_box_from_array(image, box, scores=None, colors="red", font_color="black", thickness=2,
-                                          font_size=24, use_normalized_coordinates=True):
+def draw_bounding_box_from_array(image, box, scores=None, labels=None, colors="red", font_color="black", 
+                                 thickness=2, font_size=24, use_normalized_coordinates=True):
     """
     Adds a bounding box to an image (numpy array).
     
@@ -23,6 +17,7 @@ def draw_bounding_box_from_array(image, box, scores=None, colors="red", font_col
         + image (np.array) -- Image to draw the bounding box with shape [height, width, 3].
         + box (list) -- Coordinates from the box. [xmin, ymin, xmax, ymax].
         + scores (list, np.array) -- Output scores from the FERModel.
+        + labels (list, dict) -- Labels from each score.
         + colors (str, dict) -- Colors to draw bounding box. Default is 'red'. 
             A dict can be passed to draw boxes of different colors for each label.
         + font_color -- Color to draw the text.
@@ -34,13 +29,13 @@ def draw_bounding_box_from_array(image, box, scores=None, colors="red", font_col
     """
 
     pil_image = Image.fromarray(np.uint8(image)).convert("RGB")
-    draw_bounding_box(pil_image, box, scores, colors,
-                               font_color, thickness, font_size, use_normalized_coordinates)
+    draw_bounding_box(pil_image, box, scores, labels, colors, font_color, 
+                      thickness, font_size, use_normalized_coordinates)
     np.copyto(image, np.array(pil_image))
 
 
-def draw_bounding_box(image, box, scores=None, colors="red", font_color="black", thickness=2,
-                               font_size=24, use_normalized_coordinates=True):
+def draw_bounding_box(image, box, scores=None, labels=None, colors="red", font_color="black", 
+                      thickness=2, font_size=24, use_normalized_coordinates=True):
     """
     Adds a bounding box to an image.
     
@@ -48,6 +43,7 @@ def draw_bounding_box(image, box, scores=None, colors="red", font_color="black",
         + image (PIL.Image) -- A PIL.Image object.
         + box (list) -- Coordinates from the box. [xmin, ymin, xmax, ymax].
         + scores (list, np.array) -- Output scores from the FERModel.
+        + labels (list, dict) -- Labels from each score.
         + colors (str, dict) -- Colors to draw bounding box. Default is 'red'. 
             A dict can be passed to draw boxes of different colors for each label.
         + font_color -- Color to draw the text.
@@ -66,13 +62,20 @@ def draw_bounding_box(image, box, scores=None, colors="red", font_color="black",
     # Init drawing tool
     draw = ImageDraw.Draw(image)
 
+    # labels list to dict
+    if isinstance(labels, list):
+        labels = {i:l for i, l in enumerate(labels)} 
+
     # Retrieve info from scores
     if scores is not None:
         # most likely label
         max_score = np.argmax(scores)
         # Select color and text based on scores
         prob = scores[max_score]
-        text = LABELS[max_score] + ": {:.2f}%".format(prob*100)
+        if labels is not None:
+            text = labels[max_score] + ": {:.2f}%".format(prob*100)
+        else:
+            text = str(max_score) + ": {:.2f}%".format(prob*100)
         color = colors if not isinstance(colors, dict) else colors[max_score]
 
     else:
@@ -98,8 +101,8 @@ def draw_bounding_box(image, box, scores=None, colors="red", font_color="black",
         draw_text(image, text, left, right, top, bottom, color, font_color, font_size)
 
 
-def draw_bounding_boxes_from_array(image, boxes, scores=None, colors="red", font_color="black", thickness=2,
-                                            font_size=24, use_normalized_coordinates=True):
+def draw_bounding_boxes_from_array(image, boxes, scores=None, labels=None, colors="red", font_color="black",
+                                   thickness=2, font_size=24, use_normalized_coordinates=True):
     """
     Adds multiples bounding boxes to an image (numpy array).
     
@@ -107,6 +110,7 @@ def draw_bounding_boxes_from_array(image, boxes, scores=None, colors="red", font
         + image (np.array) -- Image to draw the bounding box with shape [height, width, 3].
         + boxes (list) -- Coordinates from the boxes. [[xmin, ymin, xmax, ymax], ...].
         + scores (list, np.array) -- Output scores from the FERModel.
+        + labels (list, dict) -- Labels from each score.
         + colors (str, dict) -- Colors to draw bounding box. Default is 'red'. 
             A dict can be passed to draw boxes of different colors for each label.
         + font_color -- Color to draw the text.
@@ -118,13 +122,13 @@ def draw_bounding_boxes_from_array(image, boxes, scores=None, colors="red", font
     """
 
     pil_image = Image.fromarray(np.uint8(image)).convert("RGB")
-    draw_bounding_boxes(pil_image, boxes, scores, colors,
-                                 font_color, thickness, font_size, use_normalized_coordinates)
+    draw_bounding_boxes(pil_image, boxes, scores, labels, colors, font_color, 
+                        thickness, font_size, use_normalized_coordinates)
     np.copyto(image, np.array(pil_image))
 
 
-def draw_bounding_boxes(image, boxes, scores=None, colors="red", font_color="black", thickness=2,
-                                 font_size=24, use_normalized_coordinates=True):
+def draw_bounding_boxes(image, boxes, scores=None, labels=None, colors="red", font_color="black", 
+                        thickness=2, font_size=24, use_normalized_coordinates=True):
     """
     Adds multiples bounding boxes to an image.
     
@@ -132,6 +136,7 @@ def draw_bounding_boxes(image, boxes, scores=None, colors="red", font_color="bla
         + image (PIL.Image) -- A PIL.Image object.
         + boxes (list) -- Coordinates from the boxes. [[xmin, ymin, xmax, ymax], ...].
         + scores (list, np.array) -- Output scores from the FERModel.
+        + labels (list, dict) -- Labels from each score.
         + colors (str, dict) -- Colors to draw bounding box. Default is 'red'. 
             A dict can be passed to draw boxes of different colors for each label.
         + font_color -- Color to draw the text.
@@ -151,8 +156,8 @@ def draw_bounding_boxes(image, boxes, scores=None, colors="red", font_color="bla
 
     for i, box in enumerate(boxes):
         score = None if scores is None else scores[i]
-        draw_bounding_box(
-            image, box, score, colors, font_color, thickness, font_size, use_normalized_coordinates)
+        draw_bounding_box(image, box, score, labels, colors, font_color, thickness, 
+                          font_size, use_normalized_coordinates)
 
 
 def draw_text_from_array(image, text, left, right, top, bottom, color="red", font_color="black", font_size=24):
