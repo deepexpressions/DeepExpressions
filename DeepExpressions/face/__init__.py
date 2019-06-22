@@ -1,1 +1,1 @@
-from .detector import Detector
+from .face_detector import Detector

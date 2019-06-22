@@ -9,7 +9,7 @@ Training using a subset from the Compound Emotions Dataset
 """
 
 
-from .applications import VGG16
+from ..applications import VGG16
 
 from tensorflow.keras.layers import *
 from tensorflow.keras.models import Model

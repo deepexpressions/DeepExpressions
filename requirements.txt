@@ -1,3 +1,4 @@
-numpy>=1.14.0
 opencv-python>=3.4.0
-tensorflow-gpu>=2.0.0-alpha0
+pathlib
+Pillow>=6.0.0
+tensorflow-gpu>=2.0.0-beta0

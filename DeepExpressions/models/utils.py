@@ -14,6 +14,7 @@ FILENAME = "./models.json"
 
 
 def list_models(only_names=True):
+    """List DeepExpressions trained models informations."""
 
     # Download models.json file
     get_file(FILE_PATH["name"], 
@@ -43,6 +44,7 @@ def list_models(only_names=True):
         
 
 def get_model_labels(model_name):
+    """Get labels given a model name."""
 
     # Download models.json file
     get_file(FILE_PATH["name"], 

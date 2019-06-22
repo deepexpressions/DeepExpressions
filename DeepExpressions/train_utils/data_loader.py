@@ -4,7 +4,7 @@ from __future__ import absolute_import
 
 import pathlib
 import tensorflow as tf
-from matplotlib import pyplot as plt
+# from matplotlib import pyplot as plt
 
 
 AUTOTUNE = tf.data.experimental.AUTOTUNE
@@ -81,37 +81,37 @@ class DataLoader():
         self.ds = ds.batch(self.batch_size).prefetch(buffer_size=AUTOTUNE)
 
 
-    def show_sample_batch(self, subplot_shape=None, figsize=(5, 5), display_title=None):
-        """
-        Show random images and their labels from dataset.
+    # def show_sample_batch(self, subplot_shape=None, figsize=(5, 5), display_title=None):
+    #     """
+    #     Show random images and their labels from dataset.
 
-        Arguments:
-            + subplots_shape (tuple) -- Shape of figures subplot. If None, shape = (1, batch_size).
-            + figsize (tuple) -- Size of the figure.
-            + display_title (str) -- Figure title.
-        """
+    #     Arguments:
+    #         + subplots_shape (tuple) -- Shape of figures subplot. If None, shape = (1, batch_size).
+    #         + figsize (tuple) -- Size of the figure.
+    #         + display_title (str) -- Figure title.
+    #     """
 
-        if subplot_shape is None:
-            ss0, ss1 = 1, self.batch_size
-            num_images = self.batch_size
-        else:
-            ss0, ss1 = subplot_shape
-            num_images = ss0 * ss1
+    #     if subplot_shape is None:
+    #         ss0, ss1 = 1, self.batch_size
+    #         num_images = self.batch_size
+    #     else:
+    #         ss0, ss1 = subplot_shape
+    #         num_images = ss0 * ss1
 
-        plt.figure(figsize=figsize)
+    #     plt.figure(figsize=figsize)
 
-        for images, labels in self.ds.take(1):
-            for n, (image, label) in enumerate(zip(images, labels)):
-                if n+1 > num_images:
-                    break
+    #     for images, labels in self.ds.take(1):
+    #         for n, (image, label) in enumerate(zip(images, labels)):
+    #             if n+1 > num_images:
+    #                 break
 
-                plt.subplot(ss0, ss1, n+1)
-                plt.imshow(image)
-                plt.title(self.label_names[label.numpy()])
-                plt.xticks([])
-                plt.yticks([])
-        plt.suptitle(display_title)
-        plt.show()
+    #             plt.subplot(ss0, ss1, n+1)
+    #             plt.imshow(image)
+    #             plt.title(self.label_names[label.numpy()])
+    #             plt.xticks([])
+    #             plt.yticks([])
+    #     plt.suptitle(display_title)
+    #     plt.show()
 
 
     def _load_all_images_and_labels(self, data_root):
