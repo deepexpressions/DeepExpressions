@@ -4,10 +4,49 @@ from __future__ import absolute_import
 
 import pathlib
 import tensorflow as tf
-# from matplotlib import pyplot as plt
+from functools import partial
+from tensorflow.keras.applications import densenet, mobilenet, resnet50
+
+from . import data_augmentation as daug
 
 
+# Autotune
 AUTOTUNE = tf.data.experimental.AUTOTUNE
+
+# Preprocess_inputs functions
+_preprocess_by_convnet_dict = dict(
+    vgg16 = (resnet50.preprocess_input, "tensor"),
+    vgg19 = (resnet50.preprocess_input, "tensor"),
+    resnet50 = (resnet50.preprocess_input, "tensor"),
+    densenet = (densenet.preprocess_input, "numpy"),
+    nasnet = (mobilenet.preprocess_input, "numpy"),
+    xception = (mobilenet.preprocess_input, "numpy"),
+    mobilenet = (mobilenet.preprocess_input, "numpy"),
+    mobilenet_v2 = (mobilenet.preprocess_input, "numpy"),
+    inception_v3 = (mobilenet.preprocess_input, "numpy"),
+    inception_resnet_v2 = (mobilenet.preprocess_input, "numpy"),
+)
+
+# Norm P [0., 1.]
+_norm_p = lambda image, label: (image / 255.0, label)
+# Norm P [-1., 1.]
+_norm_n = lambda image, label: ((image / 127.5) - 1, label)
+# Cast to tf.uint8
+_to_uint8 = lambda image, label: (tf.dtypes.cast(image, tf.uint8), label)
+
+# Preprocess by ConvNet
+def _pbc(image, convnet="vgg16"):
+    if convnet not in _preprocess_by_convnet_dict.keys():
+        raise Exception("Unkown ConvNet.")
+
+    # Get preprocess and input type
+    preprocess_input, input_type = _preprocess_by_convnet_dict[convnet]
+    image = preprocess_input(image)
+    return image
+
+
+def pbc(image, label: tuple, convnet="vgg16"):
+    return tf.py_function(partial(_pbc, convnet=convnet), [image], tf.float32), label
 
 
 class DataLoader():
@@ -19,9 +58,22 @@ class DataLoader():
         + image_size (int) -- Size to resize the loaded images.
         + data_root (str) -- Directory containing sub-folder for each label.
         + batch_size (int) -- Dataset batch size.
-        + data_augm (list) -- List of data augmentations techniques.
         + steps_per_epoch (int) -- Number of steps per epoch.
         + cache (bool) -- Load dataset in cache.
+        + normalize (str) -- If "norm_b": normalize image to range [0, 1].
+                             If "norm_n": normalize image to range [-1, 1].
+                             Else do not normalize.
+        + preprocess_by_convnet (str) -- Preprocess based on ConvNet. It overwrites `normalize`.
+        + flip_left_right (bool) -- Data augmentation: Flip an image horizontally (left to right).
+        + flip_up_down (bool) -- Data augmentation: Flip an image vertically (upside down).
+        + random_brightness (float) -- Data augmentation: Adjust the brightness of images by a random factor.
+        + random_contrast (tuple) -- Data augmentation: Adjust the contrast of an image or images by a random factor.
+        + random_hue (float) -- Data augmentation: Adjust the hue of RGB images by a random factor.
+        + random_jpeg_quality (tuple) -- Data augmentation: Randomly changes jpeg encoding quality for inducing jpeg noise.
+        + random_rotation (float) -- Data augmentation: Performs a random rotation of a image.
+        + random_saturation (tuple) -- Data augmentation: Adjust the saturation of RGB images by a random factor.
+        + random_shear (float) -- Data augmentation: Performs a random spatial shear of a image.
+        + random_zoom (tuple) -- Data augmentation: Performs a random spatial zoom of a image.
 
     Methods:
         + show_sample_batch -- show data from the first batch.
@@ -34,8 +86,15 @@ class DataLoader():
     """
 
 
-    def __init__(self, data_root, image_size=128, batch_size=32, data_augm=None, steps_per_epoch=None, cache=False):
-        """DataLoader constructor."""
+    def __init__(self, data_root, image_size=128, batch_size=32, 
+        steps_per_epoch=None, cache=False, 
+        normalize=None, preprocess_by_convnet=None, 
+        flip_left_right=False, flip_up_down=False,
+        random_brightness=None, random_contrast=None,
+        random_hue=None, random_jpeg_quality=None,
+        random_rotation=None, random_saturation=None,
+        random_shear=None, random_zoom=None):
+
 
         # Pass input variables
         self.batch_size = batch_size
@@ -47,6 +106,7 @@ class DataLoader():
 
         # Get the number of images loaded
         self.image_count = len(all_image_paths)
+        _original_image_count = len(all_image_paths)
 
         # Pass steps_per_epoch variable
         if steps_per_epoch is None:
@@ -54,64 +114,132 @@ class DataLoader():
         else:
             self.steps_per_epoch = steps_per_epoch
 
-        # Load and preprocess the data
+        # Load the data
         ds = tf.data.Dataset.from_tensor_slices(
             (all_image_paths, all_image_labels))
         ds = ds.map(
             self._load_and_preprocess_from_path_label, num_parallel_calls=AUTOTUNE)
 
+        # Copy dataset for augment original only
+        ds_augm = ds
+
         # Apply data augmentation
-        if data_augm is not None:
-            ds_augm = ds
+        if flip_left_right:
+            ds_augm_aux = ds.map(daug.flip_left_right, num_parallel_calls=AUTOTUNE)
+            ds_augm = ds_augm.concatenate(ds_augm_aux)
+            self.image_count += _original_image_count
 
-            for augmentation in data_augm:
-                ds_augm_aux = ds.map(augmentation, num_parallel_calls=AUTOTUNE)
-                ds_augm = ds_augm.concatenate(ds_augm_aux)
+        if flip_up_down:
+            ds_augm_aux = ds.map(daug.flip_up_down, num_parallel_calls=AUTOTUNE)
+            ds_augm = ds_augm.concatenate(ds_augm_aux)
+            self.image_count += _original_image_count
 
-            ds = ds_augm
-            self.image_count *= (1 + len(data_augm))
+        if random_brightness is not None:
+            if not (isinstance(random_brightness, int) or isinstance(random_brightness, float)):
+                raise Exception("random_brightness must be and integer or float.")
+            
+            daug_func = partial(daug.random_brightness, max_delta=random_brightness)
+            ds_augm_aux = ds.map(daug_func, num_parallel_calls=AUTOTUNE)
+            ds_augm = ds_augm.concatenate(ds_augm_aux)
+            self.image_count += _original_image_count
+
+        if random_contrast is not None:
+            if not (len(random_contrast) !=2 or len([False for v in random_contrast if not(
+                isinstance(v, int) or isinstance(v, float))])==0):
+                raise Exception("random_contrast must be a 2 values tuple of integer or floats")
+
+            lower, upper = random_contrast
+            daug_func = partial(daug.random_contrast, lower=lower, upper=upper)
+            ds_augm_aux = ds.map(daug_func, num_parallel_calls=AUTOTUNE)
+            ds_augm = ds_augm.concatenate(ds_augm_aux)
+            self.image_count += _original_image_count
+
+        if random_hue is not None:
+            if not (isinstance(random_hue, int) or isinstance(random_hue, float)):
+                raise Exception("random_hue must be and integer or float.")
+            
+            daug_func = partial(daug.random_hue, max_delta=random_hue)
+            ds_augm_aux = ds.map(daug_func, num_parallel_calls=AUTOTUNE)
+            ds_augm = ds_augm.concatenate(ds_augm_aux)
+            self.image_count += _original_image_count
+
+        if random_jpeg_quality is not None:
+            if not (len(random_jpeg_quality) !=2 or len([False for v in random_jpeg_quality if not(
+                isinstance(v, int) or isinstance(v, float))])==0):
+                raise Exception("random_jpeg_quality must be a 2 values tuple of integer or floats")
+
+            lower, upper = random_jpeg_quality
+            daug_func = partial(daug.random_jpeg_quality, min_jpeg_quality=lower, max_jpeg_quality=upper)
+            ds_augm_aux = ds.map(daug_func, num_parallel_calls=AUTOTUNE)
+            ds_augm = ds_augm.concatenate(ds_augm_aux)
+            self.image_count += _original_image_count
+
+        if random_rotation is not None:
+            if not (isinstance(random_rotation, int) or isinstance(random_rotation, float)):
+                raise Exception("random_rotation must be and integer or float.")
+            
+            daug_func = partial(daug.random_rotation, angle=random_rotation)
+            ds_augm_aux = ds.map(daug_func, num_parallel_calls=AUTOTUNE)
+            ds_augm = ds_augm.concatenate(ds_augm_aux)
+            self.image_count += _original_image_count
+
+        if random_saturation is not None:
+            if not (len(random_saturation) !=2 or len([False for v in random_saturation if not(
+                isinstance(v, int) or isinstance(v, float))])==0):
+                raise Exception("random_saturation must be a 2 values tuple of integer or floats")
+
+            lower, upper = random_saturation
+            daug_func = partial(daug.random_saturation, lower=lower, upper=upper)
+            ds_augm_aux = ds.map(daug_func, num_parallel_calls=AUTOTUNE)
+            ds_augm = ds_augm.concatenate(ds_augm_aux)
+            self.image_count += _original_image_count
+
+        if random_shear is not None:
+            if not (isinstance(random_shear, int) or isinstance(random_shear, float)):
+                raise Exception("random_shear must be and integer or float.")
+            
+            daug_func = partial(daug.random_shear, intensity=random_shear)
+            ds_augm_aux = ds.map(daug_func, num_parallel_calls=AUTOTUNE)
+            ds_augm = ds_augm.concatenate(ds_augm_aux)
+            self.image_count += _original_image_count
+
+        if random_zoom is not None:
+            if not (len(random_zoom) !=2 or len([False for v in random_zoom if not(
+                isinstance(v, int) or isinstance(v, float))])==0):
+                raise Exception("random_zoom must be a 2 values tuple of integer or floats")
+
+            daug_func = partial(daug.random_zoom, zoom_range=random_zoom)
+            ds_augm_aux = ds.map(daug_func, num_parallel_calls=AUTOTUNE)
+            ds_augm = ds_augm.concatenate(ds_augm_aux)
+            self.image_count += _original_image_count
+
+        # Replace origal dataset for the augmented one
+        ds = ds_augm
 
         # Prepare the dataset
         if cache:
             ds = ds.cache()
 
-        # ds = ds.apply(
-        #     tf.data.experimental.shuffle_and_repeat(buffer_size=self.image_count))
+        ## Preprocess dataset
+        # By ConvNet
+        if preprocess_by_convnet is not None:
+            preprocess_func = partial(pbc, convnet=preprocess_by_convnet)
+            ds = ds.map(preprocess_func, num_parallel_calls=AUTOTUNE)
+            if preprocess_by_convnet in ["vgg16", "vgg19", "resnet50"]:
+                ds = ds.map(_to_uint8, num_parallel_calls=AUTOTUNE)
+        # By norm P [0,1]
+        elif normalize == "norm_p":
+            ds = ds.map(_norm_p, num_parallel_calls=AUTOTUNE)
+        # By norm N [-1,1]
+        elif normalize == "norm_n":
+            ds = ds.map(_norm_n, num_parallel_calls=AUTOTUNE)
+        # float32 to uint8
+        else:
+            ds = ds.map(_to_uint8, num_parallel_calls=AUTOTUNE)
+
+        # Shuffle and batch dataset
         ds = ds.shuffle(buffer_size=self.image_count).repeat()
         self.ds = ds.batch(self.batch_size).prefetch(buffer_size=AUTOTUNE)
-
-
-    # def show_sample_batch(self, subplot_shape=None, figsize=(5, 5), display_title=None):
-    #     """
-    #     Show random images and their labels from dataset.
-
-    #     Arguments:
-    #         + subplots_shape (tuple) -- Shape of figures subplot. If None, shape = (1, batch_size).
-    #         + figsize (tuple) -- Size of the figure.
-    #         + display_title (str) -- Figure title.
-    #     """
-
-    #     if subplot_shape is None:
-    #         ss0, ss1 = 1, self.batch_size
-    #         num_images = self.batch_size
-    #     else:
-    #         ss0, ss1 = subplot_shape
-    #         num_images = ss0 * ss1
-
-    #     plt.figure(figsize=figsize)
-
-    #     for images, labels in self.ds.take(1):
-    #         for n, (image, label) in enumerate(zip(images, labels)):
-    #             if n+1 > num_images:
-    #                 break
-
-    #             plt.subplot(ss0, ss1, n+1)
-    #             plt.imshow(image)
-    #             plt.title(self.label_names[label.numpy()])
-    #             plt.xticks([])
-    #             plt.yticks([])
-    #     plt.suptitle(display_title)
-    #     plt.show()
 
 
     def _load_all_images_and_labels(self, data_root):
@@ -132,18 +260,18 @@ class DataLoader():
         return all_image_paths, all_image_labels
 
 
-    def _preprocess_image(self, image):
+    def _decode_and_resize_image(self, image):
         """Pre-process loaded images."""
         image = tf.image.decode_jpeg(image, channels=3)
         image = tf.image.resize(image, [self.image_size, self.image_size])
-        image /= 255.0
+        image = tf.dtypes.cast(image, tf.float32)
         return image
 
 
     def _load_and_preprocess_image(self, image_path):
         """Load and pre-process images."""
         image = tf.io.read_file(image_path)
-        return self._preprocess_image(image)
+        return self._decode_and_resize_image(image)
 
 
     def _load_and_preprocess_from_path_label(self, path, label):

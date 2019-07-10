@@ -34,7 +34,7 @@ def random_brightness(image, label: tuple, max_delta=0.5):
         + max_delta (float) -- Amount to add to the pixel values.
     """
     tf_image = tf.image.random_brightness(image, max_delta=max_delta)
-    return tf.clip_by_value(tf_image, 0.0, 1.0), label
+    return tf_image, label
 
 
 def random_contrast(image, label: tuple, lower=0.5, upper=2.5):
@@ -48,7 +48,7 @@ def random_contrast(image, label: tuple, lower=0.5, upper=2.5):
         + upper (float) -- Upper bound for the random contrast factor.
     """
     tf_image = tf.image.random_contrast(image, lower=lower, upper=upper)
-    return tf.clip_by_value(tf_image, 0.0, 1.0), label
+    return tf_image, label
 
 
 def random_hue(image, label: tuple, max_delta=0.5):
@@ -86,7 +86,7 @@ def random_rotation(image, label: tuple, angle=45):
         + label (tf.Tensor) -- Label from the image.
         + angle (int) -- Rotation range, in degrees.
     """
-    return tf.py_function(partial(_random_rotation, angle=angle), [image], tf.float32), label
+    return tf.py_function(partial(_random_rotation, angle=angle), [image], tf.uint8), label
 
 
 def _random_rotation(image, angle=45):
@@ -122,7 +122,7 @@ def random_shear(image, label: tuple, intensity=45):
         + label (tf.Tensor) -- Label from the image.
         + intensity (int) -- Transformation intensity in degrees.
     """
-    return tf.py_function(partial(_random_shear, intensity=intensity), [image], tf.float32), label
+    return tf.py_function(partial(_random_shear, intensity=intensity), [image], tf.uint8), label
 
 
 def _random_shear(image, intensity=45):
@@ -145,7 +145,7 @@ def random_zoom(image, label: tuple, zoom_range=(0.6, 0.6)):
         + label (tf.Tensor) -- Label from the image.
         + zoom_range (Tuple of floats) -- Zoom range for width and height.
     """
-    return tf.py_function(partial(_random_zoom, zoom_range=zoom_range), [image], tf.float32), label
+    return tf.py_function(partial(_random_zoom, zoom_range=zoom_range), [image], tf.uint8), label
 
 
 def _random_zoom(image, zoom_range=(0.6, 0.6)):
