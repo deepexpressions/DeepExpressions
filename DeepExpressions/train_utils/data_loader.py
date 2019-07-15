@@ -18,7 +18,6 @@ _preprocess_by_convnet_dict = dict(
     vgg16 = (resnet50.preprocess_input, "tensor"),
     vgg19 = (resnet50.preprocess_input, "tensor"),
     resnet50 = (resnet50.preprocess_input, "tensor"),
-    densenet = (densenet.preprocess_input, "numpy"),
     nasnet = (mobilenet.preprocess_input, "numpy"),
     xception = (mobilenet.preprocess_input, "numpy"),
     mobilenet = (mobilenet.preprocess_input, "numpy"),
@@ -31,17 +30,15 @@ _preprocess_by_convnet_dict = dict(
 _norm_p = lambda image, label: (image / 255.0, label)
 # Norm P [-1., 1.]
 _norm_n = lambda image, label: ((image / 127.5) - 1, label)
-# Cast to tf.uint8
-_to_uint8 = lambda image, label: (tf.dtypes.cast(image, tf.uint8), label)
 
 # Preprocess by ConvNet
 def _pbc(image, convnet="vgg16"):
-    if convnet not in _preprocess_by_convnet_dict.keys():
-        raise Exception("Unkown ConvNet.")
-
     # Get preprocess and input type
-    preprocess_input, input_type = _preprocess_by_convnet_dict[convnet]
+    preprocess_input, _ = _preprocess_by_convnet_dict[convnet]
     image = preprocess_input(image)
+
+    if convnet in ["vgg16", "vgg19", "resnet50"]:
+        image = tf.dtypes.cast(image, tf.uint8) / 255
     return image
 
 
@@ -95,6 +92,12 @@ class DataLoader():
         random_rotation=None, random_saturation=None,
         random_shear=None, random_zoom=None):
 
+        # Raise Excepetion based on convnet preprocess argument
+        if preprocess_by_convnet is not None and preprocess_by_convnet not in _preprocess_by_convnet_dict.keys():
+            raise Exception(("Unkown ConvNet. Try one of those:\n"
+                             "`vgg16`, `vgg19`, `resnet50`, `nasnet`, `xception`, "
+                             "`mobilenet`, `mobilenet_v2`, `inception_v3`, "
+                             "`inception_resnet_v2`"))
 
         # Pass input variables
         self.batch_size = batch_size
@@ -225,17 +228,12 @@ class DataLoader():
         if preprocess_by_convnet is not None:
             preprocess_func = partial(pbc, convnet=preprocess_by_convnet)
             ds = ds.map(preprocess_func, num_parallel_calls=AUTOTUNE)
-            if preprocess_by_convnet in ["vgg16", "vgg19", "resnet50"]:
-                ds = ds.map(_to_uint8, num_parallel_calls=AUTOTUNE)
         # By norm P [0,1]
         elif normalize == "norm_p":
             ds = ds.map(_norm_p, num_parallel_calls=AUTOTUNE)
         # By norm N [-1,1]
         elif normalize == "norm_n":
             ds = ds.map(_norm_n, num_parallel_calls=AUTOTUNE)
-        # float32 to uint8
-        else:
-            ds = ds.map(_to_uint8, num_parallel_calls=AUTOTUNE)
 
         # Shuffle and batch dataset
         ds = ds.shuffle(buffer_size=self.image_count).repeat()
@@ -264,7 +262,6 @@ class DataLoader():
         """Pre-process loaded images."""
         image = tf.image.decode_jpeg(image, channels=3)
         image = tf.image.resize(image, [self.image_size, self.image_size])
-        image = tf.dtypes.cast(image, tf.float32)
         return image
 
 

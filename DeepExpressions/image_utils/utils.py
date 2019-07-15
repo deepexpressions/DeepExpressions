@@ -12,7 +12,7 @@ _preprocess_by_convnet_dict = dict(
     vgg16 = (resnet50.preprocess_input, "tensor"),
     vgg19 = (resnet50.preprocess_input, "tensor"),
     resnet50 = (resnet50.preprocess_input, "tensor"),
-    densenet = (densenet.preprocess_input, "numpy"),
+    # densenet = (densenet.preprocess_input, "numpy"),
     nasnet = (mobilenet.preprocess_input, "numpy"),
     xception = (mobilenet.preprocess_input, "numpy"),
     mobilenet = (mobilenet.preprocess_input, "numpy"),
@@ -48,9 +48,6 @@ def imread(image_path, as_array=False, normalize=None):
 
 
 def preprocess_by_convnet(image, convnet="vgg16", as_array=False):
-    if image.dtype.name != "uint8":
-        raise Exception("Image dtype must be uint8.")
-
     if convnet not in _preprocess_by_convnet_dict.keys():
         raise Exception("Unkown ConvNet.")
 

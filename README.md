@@ -5,7 +5,7 @@
 ---
 ## About
 
-DeepExpressions is a Deep Learning tookit for Facial Expressions Recognition (FER) which aims to enable an easy way to implement projects based on human emotions.
+DeepExpressions is a Deep Learning toolkit for Facial Expressions Recognition (FER) which aims to enable an easy way to implement projects based on human emotions.
 
 ---
 ## Installation

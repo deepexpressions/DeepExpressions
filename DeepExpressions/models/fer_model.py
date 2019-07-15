@@ -2,9 +2,12 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import absolute_import
 
+import os
 import numpy as np
 import tensorflow as tf
-from .fer_models_info import FER_MODELS, FER_LABELS
+
+from . import utils
+from .applications import *
 
 
 # Image size from input_data
@@ -17,7 +20,7 @@ class FERModel():
 
     Arguments:
         + model_name (str) -- Name of the model. Options available at : http://github.com/deepexpressions/models.
-        + custom_model (str) -- Path to custom model saved (only *.h5 files).
+        + filename (str) -- Path to custom model saved (only *.h5 files).
 
     Methods:
         + predict -- Predict facial expressions from input_data.
@@ -30,12 +33,20 @@ class FERModel():
     """
 
 
-    def __init__(self, model_name="ce-xception-512-256", custom_model=None):
+    def __init__(self, name=None, labels=None, input_shape=(128, 128, 3), filename=None):
         """Model constructor."""
 
-        self.model_name = model_name
-        self._custom_model = custom_model
-        self.model = load_model(model_name, custom_model)
+        if (name == filename == None) or (name is not None and filename is not None):
+            raise Exception("None or more than one model specified. Please select a model name or a path.")
+
+        if name is not None:
+            if not utils._model_exists(name):
+                raise Exception("Model name does not exists. Try another.")
+            else:
+                self.model = utils.load_model(name)
+
+        else:
+            self.model = utils.load_model_from_dir(filename)
 
 
     def predict(self, input_data, return_labels=False, return_scores=False):
@@ -71,7 +82,7 @@ class FERModel():
 
     def train_info(self):
         """Prints some training information about the model loaded."""
-        if self._custom_model is not None:
+        if self._filename is not None:
             raise "Can't find informations about custom models."
         print(FER_MODELS[self.model_name]["info"])
 
@@ -119,41 +130,3 @@ class FERModel():
         return FER_LABELS[x]
 
 
-def load_model(model_name="ce-xception-512-256", custom_model=None):
-    """
-    Load a Facial Expression Recognition classifier from DeepExpressions models.
-
-    Arguments:
-        + model_name (str) -- Name of the model. Options available at : ?.
-        + custom_model (str) -- Path to custom model saved (only *.h5 files).
-
-    Output:
-        + Keras Sequential model for acial Expression Recognition.
-    """
-    def maybe_download_model():
-        # Get info from the model
-        model = FER_MODELS[model_name]
-        # Use keras utils to download model
-        model_path = tf.keras.utils.get_file(
-            model["filename"],
-            model["url"],
-            cache_subdir="deep_expressions"
-        )
-        return model_path
-
-    print("[INFO] Loading model '{}' ...".format(model_name), end=" ")
-    
-    if custom_model is None:
-        # Path to DeepExpression model
-        model_path = maybe_download_model()
-    else:
-        # Verify file extension
-        assert custom_model.endswith(".h5"), "Custom model must be save with extenstion '.h5'."
-        # Path to custom model
-        model_path = custom_model
-    
-    # Load model
-    model = tf.keras.models.load_model(model_path)
-    print("Done.")
-
-    return model
