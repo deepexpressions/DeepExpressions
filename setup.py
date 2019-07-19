@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="deep-expressions",
-    version="0.0.1",
+    version="0.0.3",
     author="Humberto da Silva Neto",
     author_email="humberto.nt4@gmail.com",
     description="A Deep Learning toolkit for Facial Expressions Recognition (FER)",
@@ -17,7 +17,7 @@ setuptools.setup(
     license="MIT",
     classifiers=[
         "Programming Language :: Python :: 3",
-        "License :: OSI Approved :: MIT License",
+        "License :: OSI Approved :: MIT License",''
         "Operating System :: OS Independent",
     ],
     install_requires=[
