@@ -5,45 +5,20 @@ from __future__ import absolute_import
 import pathlib
 import tensorflow as tf
 from functools import partial
-from tensorflow.keras.applications import densenet, mobilenet, resnet50
-
 from . import data_augmentation as daug
 
 
 # Autotune
 AUTOTUNE = tf.data.experimental.AUTOTUNE
 
-# Preprocess_inputs functions
-_preprocess_by_convnet_dict = dict(
-    vgg16 = (resnet50.preprocess_input, "tensor"),
-    vgg19 = (resnet50.preprocess_input, "tensor"),
-    resnet50 = (resnet50.preprocess_input, "tensor"),
-    nasnet = (mobilenet.preprocess_input, "numpy"),
-    xception = (mobilenet.preprocess_input, "numpy"),
-    mobilenet = (mobilenet.preprocess_input, "numpy"),
-    mobilenet_v2 = (mobilenet.preprocess_input, "numpy"),
-    inception_v3 = (mobilenet.preprocess_input, "numpy"),
-    inception_resnet_v2 = (mobilenet.preprocess_input, "numpy"),
-)
-
 # Norm P [0., 1.]
 _norm_p = lambda image, label: (image / 255.0, label)
 # Norm P [-1., 1.]
 _norm_n = lambda image, label: ((image / 127.5) - 1, label)
-
-# Preprocess by ConvNet
-def _pbc(image, convnet="vgg16"):
-    # Get preprocess and input type
-    preprocess_input, _ = _preprocess_by_convnet_dict[convnet]
-    image = preprocess_input(image)
-
-    if convnet in ["vgg16", "vgg19", "resnet50"]:
-        image = tf.dtypes.cast(image, tf.uint8) / 255
-    return image
-
-
-def pbc(image, label: tuple, convnet="vgg16"):
-    return tf.py_function(partial(_pbc, convnet=convnet), [image], tf.float32), label
+# Clip P [0., 1.]
+_clip_p = lambda image, label: (tf.clip_by_value(image, 0.0, 1.0), label)
+# Clip P [-1., 1.]
+_clip_n = lambda image, label: (tf.clip_by_value(image, -1.0, 1.0), label)
 
 
 class DataLoader():
@@ -60,7 +35,6 @@ class DataLoader():
         + normalize (str) -- If "norm_b": normalize image to range [0, 1].
                              If "norm_n": normalize image to range [-1, 1].
                              Else do not normalize.
-        + preprocess_by_convnet (str) -- Preprocess based on ConvNet. It overwrites `normalize`.
         + flip_left_right (bool) -- Data augmentation: Flip an image horizontally (left to right).
         + flip_up_down (bool) -- Data augmentation: Flip an image vertically (upside down).
         + random_brightness (float) -- Data augmentation: Adjust the brightness of images by a random factor.
@@ -84,20 +58,12 @@ class DataLoader():
 
 
     def __init__(self, data_root, image_size=128, batch_size=32, 
-        steps_per_epoch=None, cache=False, 
-        normalize=None, preprocess_by_convnet=None, 
+        steps_per_epoch=None, cache=False, normalize=None, 
         flip_left_right=False, flip_up_down=False,
         random_brightness=None, random_contrast=None,
         random_hue=None, random_jpeg_quality=None,
         random_rotation=None, random_saturation=None,
         random_shear=None, random_zoom=None):
-
-        # Raise Excepetion based on convnet preprocess argument
-        if preprocess_by_convnet is not None and preprocess_by_convnet not in _preprocess_by_convnet_dict.keys():
-            raise Exception(("Unkown ConvNet. Try one of those:\n"
-                             "`vgg16`, `vgg19`, `resnet50`, `nasnet`, `xception`, "
-                             "`mobilenet`, `mobilenet_v2`, `inception_v3`, "
-                             "`inception_resnet_v2`"))
 
         # Pass input variables
         self.batch_size = batch_size
@@ -219,21 +185,19 @@ class DataLoader():
         # Replace origal dataset for the augmented one
         ds = ds_augm
 
-        # Prepare the dataset
-        if cache:
-            ds = ds.cache()
-
         ## Preprocess dataset
-        # By ConvNet
-        if preprocess_by_convnet is not None:
-            preprocess_func = partial(pbc, convnet=preprocess_by_convnet)
-            ds = ds.map(preprocess_func, num_parallel_calls=AUTOTUNE)
         # By norm P [0,1]
-        elif normalize == "norm_p":
+        if normalize == "norm_p":
             ds = ds.map(_norm_p, num_parallel_calls=AUTOTUNE)
+            ds = ds.map(_clip_p, num_parallel_calls=AUTOTUNE)
         # By norm N [-1,1]
         elif normalize == "norm_n":
             ds = ds.map(_norm_n, num_parallel_calls=AUTOTUNE)
+            ds = ds.map(_clip_n, num_parallel_calls=AUTOTUNE)
+
+        # Cache dataset
+        if cache:
+            ds = ds.cache()
 
         # Shuffle and batch dataset
         ds = ds.shuffle(buffer_size=self.image_count).repeat()

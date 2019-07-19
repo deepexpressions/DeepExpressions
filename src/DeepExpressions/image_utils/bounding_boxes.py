@@ -9,7 +9,7 @@ STANDARD_COLORS = list(ImageColor.colormap)
 
 
 def draw_bounding_box_from_array(image, box, scores=None, labels=None, colors="red", font_color="black", 
-                                 thickness=2, font_size=24, use_normalized_coordinates=True):
+                                 thickness=2, font_size=12, use_normalized_coordinates=True):
     """
     Adds a bounding box to an image (numpy array).
     
@@ -35,7 +35,7 @@ def draw_bounding_box_from_array(image, box, scores=None, labels=None, colors="r
 
 
 def draw_bounding_box(image, box, scores=None, labels=None, colors="red", font_color="black", 
-                      thickness=2, font_size=24, use_normalized_coordinates=True):
+                      thickness=2, font_size=12, use_normalized_coordinates=True):
     """
     Adds a bounding box to an image.
     
@@ -102,7 +102,7 @@ def draw_bounding_box(image, box, scores=None, labels=None, colors="red", font_c
 
 
 def draw_bounding_boxes_from_array(image, boxes, scores=None, labels=None, colors="red", font_color="black",
-                                   thickness=2, font_size=24, use_normalized_coordinates=True):
+                                   thickness=2, font_size=12, use_normalized_coordinates=True):
     """
     Adds multiples bounding boxes to an image (numpy array).
     
@@ -128,7 +128,7 @@ def draw_bounding_boxes_from_array(image, boxes, scores=None, labels=None, color
 
 
 def draw_bounding_boxes(image, boxes, scores=None, labels=None, colors="red", font_color="black", 
-                        thickness=2, font_size=24, use_normalized_coordinates=True):
+                        thickness=2, font_size=12, use_normalized_coordinates=True):
     """
     Adds multiples bounding boxes to an image.
     
@@ -160,7 +160,7 @@ def draw_bounding_boxes(image, boxes, scores=None, labels=None, colors="red", fo
                           font_size, use_normalized_coordinates)
 
 
-def draw_text_from_array(image, text, left, right, top, bottom, color="red", font_color="black", font_size=24):
+def draw_text_from_array(image, text, left, right, top, bottom, color="red", font_color="black", font_size=12):
     """
     Adds a text box to an image (numpy array).
     
@@ -181,7 +181,7 @@ def draw_text_from_array(image, text, left, right, top, bottom, color="red", fon
     np.copyto(image, np.array(pil_image))
 
 
-def draw_text(image, text, left, right, top, bottom, color="red", font_color="black", font_size=24):
+def draw_text(image, text, left, right, top, bottom, color="red", font_color="black", font_size=12):
     """
     Adds a text box to an image (numpy array).
     

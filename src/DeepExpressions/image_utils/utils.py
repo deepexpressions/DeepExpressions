@@ -5,21 +5,6 @@ from __future__ import absolute_import
 import numpy as np
 import tensorflow as tf
 import PIL.Image as Image
-from tensorflow.keras.applications import densenet, mobilenet, resnet50
-
-
-_preprocess_by_convnet_dict = dict(
-    vgg16 = (resnet50.preprocess_input, "tensor"),
-    vgg19 = (resnet50.preprocess_input, "tensor"),
-    resnet50 = (resnet50.preprocess_input, "tensor"),
-    # densenet = (densenet.preprocess_input, "numpy"),
-    nasnet = (mobilenet.preprocess_input, "numpy"),
-    xception = (mobilenet.preprocess_input, "numpy"),
-    mobilenet = (mobilenet.preprocess_input, "numpy"),
-    mobilenet_v2 = (mobilenet.preprocess_input, "numpy"),
-    inception_v3 = (mobilenet.preprocess_input, "numpy"),
-    inception_resnet_v2 = (mobilenet.preprocess_input, "numpy"),
-)
 
 
 def imread(image_path, as_array=False, normalize=None):
@@ -45,27 +30,6 @@ def imread(image_path, as_array=False, normalize=None):
 
     image = image if not as_array else image.numpy()
     return image
-
-
-def preprocess_by_convnet(image, convnet="vgg16", as_array=False):
-    if convnet not in _preprocess_by_convnet_dict.keys():
-        raise Exception("Unkown ConvNet.")
-
-    # Get preprocess and input type
-    preprocess_input, input_type = _preprocess_by_convnet_dict[convnet]
-    # Convert image to float32
-    image = tf.dtypes.cast(image, tf.float32)
-    # Preprocess image
-    image = preprocess_input(image)
-
-    if input_type == "tensor":
-        image = tf.dtypes.cast(image, tf.uint8)
-
-    if as_array:
-        return image.numpy()
-
-    else:
-        return image
 
 
 def imresize(image, height=128, width=128, as_array=False):
