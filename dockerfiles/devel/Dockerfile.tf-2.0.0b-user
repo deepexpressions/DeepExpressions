@@ -1,0 +1,24 @@
+FROM expressions/devel:tf-2.0.0b
+
+# Enable extensions
+RUN jupyter nbextension enable codefolding/main && \
+    jupyter nbextension enable code_prettify/autopep8 && \
+    jupyter nbextension enable livemdpreview/livemdpreview && \
+    jupyter nbextension enable spellchecker/main && \
+    jupyter nbextension enable toggle_all_line_numbers/main && \
+    jupyter nbextension enable move_selected_cells/main && \
+    jupyter nbextension enable tree-filter/index && \
+    jupyter nbextension enable collapsible_headings/main && \
+    jupyter nbextension enable varInspector/main
+
+# Set user
+RUN useradd -ms /bin/bash tf
+USER tf 
+
+# Set up work dir
+WORKDIR /home/tf/work
+
+# Expose jupyter and tensorflow ports
+EXPOSE 8888 6006
+
+CMD /bin/bash

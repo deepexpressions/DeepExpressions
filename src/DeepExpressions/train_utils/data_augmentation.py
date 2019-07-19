@@ -34,7 +34,7 @@ def random_brightness(image, label: tuple, max_delta=0.5):
         + max_delta (float) -- Amount to add to the pixel values.
     """
     tf_image = tf.image.random_brightness(image, max_delta=max_delta)
-    return tf.clip_by_value(tf_image, 0.0, 1.0), label
+    return tf_image, label
 
 
 def random_contrast(image, label: tuple, lower=0.5, upper=2.5):
@@ -48,7 +48,7 @@ def random_contrast(image, label: tuple, lower=0.5, upper=2.5):
         + upper (float) -- Upper bound for the random contrast factor.
     """
     tf_image = tf.image.random_contrast(image, lower=lower, upper=upper)
-    return tf.clip_by_value(tf_image, 0.0, 1.0), label
+    return tf_image, label
 
 
 def random_hue(image, label: tuple, max_delta=0.5):
