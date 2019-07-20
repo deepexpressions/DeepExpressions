@@ -9,12 +9,10 @@ __pycache__
 .ipynb_checkpoints
 *.ipynb
 
-# Unfinished docs
-docs/images/ce.jpg
-docs/images/ck+.gif
-docs/images/jaffe.png
-docs/*.md
-
 # Unfineshed code
-# DeepExpressions/wrapper/
 examples
+
+# Setuptools distribution folder.
+dist/
+build/
+src/deep_expressions.egg-info
