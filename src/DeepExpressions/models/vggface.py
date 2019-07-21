@@ -71,12 +71,12 @@ def _get_weights_path(weights, num_layers):
     elif weights in {"ck", "ck+"} and num_layers == 1:
         return VGGFACE_CK_L1_WEIGHTS_PATH
     elif weights in {"ck", "ck+"} and num_layers == 3:
-        return VGGFACE_CK_L1_WEIGHTS_PATH
+        return VGGFACE_CK_L3_WEIGHTS_PATH
 
     if weights == "kdef" and num_layers == 1:
         return VGGFACE_KDEF_L1_WEIGHTS_PATH
     elif weights == "kdef" and num_layers == 3:
-        return VGGFACE_KDEF_L1_WEIGHTS_PATH
+        return VGGFACE_KDEF_L3_WEIGHTS_PATH
 
     elif weights == "iffg" and num_layers == 3:
         return VGGFACE_IFFG_L3_WEIGHTS_PATH
